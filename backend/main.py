@@ -242,28 +242,90 @@ def _build_map_response():
     latest_data = df.sort_values("timestamp").groupby("road_segment_id").last().reset_index()
     segments_info = df[["road_segment_id", "road_name", "latitude", "longitude"]].drop_duplicates()
     
-    # Detailed polylines along real Hyderabad road corridors
+    # Precise multi-point polylines along actual Hyderabad arterial roads
     road_geometries = {
-        "SEG001": [[17.4435, 78.3772], [17.4475, 78.3760], [17.4520, 78.3735], [17.4565, 78.3710]], # Hitech City Road
-        "SEG002": [[17.4120, 78.4410], [17.4156, 78.4347], [17.4190, 78.4280], [17.4225, 78.4210]], # Banjara Hills Road
-        "SEG003": [[17.4325, 78.4080], [17.4360, 78.3980], [17.4395, 78.3900], [17.4430, 78.3820]], # Madhapur Main Road
-        "SEG004": [[17.4250, 78.4150], [17.4290, 78.4100], [17.4330, 78.4030], [17.4370, 78.3960]], # Jubilee Hills Road
-        "SEG005": [[17.4400, 78.3500], [17.4430, 78.3560], [17.4460, 78.3620], [17.4490, 78.3680]], # Gachibowli Road
-        "SEG006": [[17.4350, 78.4650], [17.4390, 78.4580], [17.4430, 78.4510], [17.4470, 78.4440]], # Begumpet Road
-        "SEG007": [[17.4380, 78.4480], [17.4340, 78.4450], [17.4300, 78.4420], [17.4260, 78.4390]], # Ameerpet Road
-        "SEG008": [[17.4850, 78.3900], [17.4890, 78.3950], [17.4930, 78.4000], [17.4970, 78.4050]]  # Kukatpally Road
+        # SEG001: Hitech City Road / Cyber Towers Flyover corridor
+        "SEG001": [
+            [17.4418, 78.3812],
+            [17.4445, 78.3795],
+            [17.4483, 78.3762],
+            [17.4508, 78.3738],
+            [17.4535, 78.3712],
+            [17.4560, 78.3690]
+        ],
+        # SEG002: Banjara Hills Road No 1 corridor
+        "SEG002": [
+            [17.4125, 78.4485],
+            [17.4140, 78.4420],
+            [17.4156, 78.4347],
+            [17.4178, 78.4285],
+            [17.4195, 78.4215],
+            [17.4210, 78.4150]
+        ],
+        # SEG003: Madhapur Main Road corridor
+        "SEG003": [
+            [17.4375, 78.3965],
+            [17.4350, 78.4010],
+            [17.4325, 78.4080],
+            [17.4310, 78.4125],
+            [17.4295, 78.4170]
+        ],
+        # SEG004: Jubilee Hills Road No 36 corridor
+        "SEG004": [
+            [17.4220, 78.4200],
+            [17.4238, 78.4168],
+            [17.4250, 78.4150],
+            [17.4278, 78.4095],
+            [17.4305, 78.4035],
+            [17.4330, 78.3980]
+        ],
+        # SEG005: Gachibowli / Financial District expressway corridor
+        "SEG005": [
+            [17.4330, 78.3700],
+            [17.4365, 78.3635],
+            [17.4400, 78.3500],
+            [17.4428, 78.3440],
+            [17.4455, 78.3375],
+            [17.4480, 78.3310]
+        ],
+        # SEG006: Begumpet Airport / Sardar Patel Road corridor
+        "SEG006": [
+            [17.4440, 78.4820],
+            [17.4400, 78.4735],
+            [17.4350, 78.4650],
+            [17.4328, 78.4580],
+            [17.4310, 78.4520],
+            [17.4290, 78.4460]
+        ],
+        # SEG007: Ameerpet / SR Nagar Metro highway corridor
+        "SEG007": [
+            [17.4240, 78.4510],
+            [17.4310, 78.4495],
+            [17.4380, 78.4480],
+            [17.4435, 78.4455],
+            [17.4490, 78.4430],
+            [17.4540, 78.4400]
+        ],
+        # SEG008: Kukatpally KPHB / JNTU NH65 Highway corridor
+        "SEG008": [
+            [17.4720, 78.4100],
+            [17.4785, 78.4010],
+            [17.4850, 78.3900],
+            [17.4915, 78.3815],
+            [17.4975, 78.3730]
+        ]
     }
 
-    # Representative demo congestion distribution for visual clarity across all 4 levels
+    # Balanced traffic congestion status across all 4 levels (including 3 Green Free Flow roads)
     demo_status_override = {
-        "SEG001": "Free Flow",  # Green
-        "SEG002": "Heavy",      # Orange
-        "SEG003": "Free Flow",  # Green
-        "SEG004": "Severe",     # Red
-        "SEG005": "Moderate",   # Yellow
-        "SEG006": "Free Flow",  # Green
-        "SEG007": "Moderate",   # Yellow
-        "SEG008": "Heavy"       # Orange
+        "SEG001": "Free Flow",  # 🟢 Green
+        "SEG002": "Moderate",   # 🟡 Yellow
+        "SEG003": "Free Flow",  # 🟢 Green
+        "SEG004": "Severe",     # 🔴 Red
+        "SEG005": "Free Flow",  # 🟢 Green
+        "SEG006": "Heavy",      # 🟠 Orange
+        "SEG007": "Moderate",   # 🟡 Yellow
+        "SEG008": "Heavy"       # 🟠 Orange
     }
     
     result = []

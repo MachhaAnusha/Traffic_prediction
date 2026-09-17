@@ -458,28 +458,30 @@ const TrafficDashboard = () => {
 
         {/* Map */}
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6 mb-8`}>
-          <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Road Network Map</h3>
-          <div className="mb-4 flex items-center gap-4 text-sm">
-            <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Traffic Conditions:</span>
-            <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : ''}`}>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>Free Flow</span>
-            </div>
-            <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : ''}`}>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <span>Moderate</span>
-            </div>
-            <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : ''}`}>
-              <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-              <span>Heavy</span>
-            </div>
-            <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : ''}`}>
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span>Severe</span>
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Road Network Map</h3>
+            <div className="flex items-center gap-4 text-xs md:text-sm">
+              <span className={darkMode ? 'text-gray-300 font-medium' : 'text-gray-600 font-medium'}>Traffic Conditions:</span>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-[#22c55e] inline-block"></span>
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Free Flow</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-[#eab308] inline-block"></span>
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Moderate</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-[#f97316] inline-block"></span>
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Heavy</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-[#ef4444] inline-block"></span>
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Severe</span>
+              </div>
             </div>
           </div>
-          <div className="h-96 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
-            <MapContainer center={[17.4350, 78.4000]} zoom={12} style={{ height: '100%', width: '100%' }}>
+          <div className="h-[450px] rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700 shadow-inner">
+            <MapContainer center={[17.4380, 78.4100]} zoom={12.5} style={{ height: '100%', width: '100%' }}>
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; OpenStreetMap contributors'
@@ -489,48 +491,68 @@ const TrafficDashboard = () => {
                 const segName = seg.road_name || seg.name
                 const congestionColor = getCongestionHexColor(seg.congestion_level)
                 const isSelected = segId === selectedSegment
-                const weight = isSelected ? 10 : 6
-                const opacity = isSelected ? 1 : 0.85
+                const positions = seg.geometry || [[seg.latitude, seg.longitude]]
 
                 return (
-                  <Polyline
-                    key={segId}
-                    positions={seg.geometry || [[seg.latitude, seg.longitude]]}
-                    color={congestionColor}
-                    weight={weight}
-                    opacity={opacity}
-                    eventHandlers={{
-                      click: () => setSelectedSegment(segId)
-                    }}
-                  >
-                    <Popup>
-                      <div className="p-2 min-w-[180px]">
-                        <div className="font-bold text-base text-gray-900">{segName}</div>
-                        <div className={`mt-1 text-sm font-semibold ${getCongestionTextColor(seg.congestion_level)}`}>
-                          {seg.congestion_level.toUpperCase()}
-                        </div>
-                        <div className="mt-2 text-xs text-gray-700 space-y-1">
-                          <div>Speed: <span className="font-medium">{seg.speed} km/h</span></div>
-                          <div>Volume: <span className="font-medium">{Math.round(seg.volume).toLocaleString()} veh/hr</span></div>
-                        </div>
-                        {prediction && (prediction.segment_id === segId || prediction.id === segId) && (
-                          <div className="mt-3 pt-2 border-t border-gray-200">
-                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Prediction</div>
-                            <div className={`font-semibold text-sm ${getCongestionTextColor(prediction.congestion_level)}`}>
-                              {prediction.congestion_level.toUpperCase()}
-                            </div>
-                            <div className="text-xs text-gray-600">Confidence: {Math.round(prediction.confidence * 100)}%</div>
+                  <div key={segId}>
+                    {/* Background Casing Line for Google Maps traffic overlay effect */}
+                    <Polyline
+                      positions={positions}
+                      color={isSelected ? "#2563eb" : "#0f172a"}
+                      weight={isSelected ? 12 : 8}
+                      opacity={isSelected ? 0.9 : 0.5}
+                      pathOptions={{ lineCap: "round", lineJoin: "round" }}
+                    />
+                    {/* Main Colored Traffic Line */}
+                    <Polyline
+                      positions={positions}
+                      color={congestionColor}
+                      weight={isSelected ? 8 : 5}
+                      opacity={0.95}
+                      pathOptions={{ lineCap: "round", lineJoin: "round" }}
+                      eventHandlers={{
+                        click: () => setSelectedSegment(segId)
+                      }}
+                    >
+                      <Popup>
+                        <div className="p-2 min-w-[200px]">
+                          <div className="font-bold text-base text-gray-900 border-b pb-1 mb-2">{segName}</div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs text-gray-500">Status</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold text-white ${getCongestionColor(seg.congestion_level)}`}>
+                              {seg.congestion_level}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    </Popup>
-                  </Polyline>
+                          <div className="text-xs text-gray-700 space-y-1 bg-gray-50 p-2 rounded">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Average Speed:</span>
+                              <span className="font-semibold text-gray-900">{seg.speed} km/h</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Traffic Volume:</span>
+                              <span className="font-semibold text-gray-900">{Math.round(seg.volume).toLocaleString()} veh/hr</span>
+                            </div>
+                          </div>
+                          {prediction && (prediction.segment_id === segId || prediction.id === segId) && (
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                              <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">ML Model Prediction</div>
+                              <div className="flex justify-between items-center text-xs">
+                                <span>Level: <strong>{prediction.congestion_level}</strong></span>
+                                <span>Confidence: <strong>{Math.round(prediction.confidence * 100)}%</strong></span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </Popup>
+                    </Polyline>
+                  </div>
                 )
               })}
             </MapContainer>
           </div>
-          <div className={`mt-2 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            * Demo traffic data - Synthetic historical dataset
+          <div className={`mt-2 text-xs flex justify-between items-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <span>* Demo traffic data - Synthetic historical dataset</span>
+            <span>Center: Hyderabad, India</span>
           </div>
         </div>
 
