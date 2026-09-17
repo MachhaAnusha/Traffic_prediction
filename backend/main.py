@@ -238,6 +238,71 @@ def get_overview():
         "most_congested_hour": f"{most_congested_hour}:00"
     }
 
+@app.get("/api/weather")
+def get_weather():
+    """Get current weather conditions for Hyderabad, India with live data & local fallback"""
+    import urllib.request
+    try:
+        url = "https://api.open-meteo.com/v1/forecast?latitude=17.3850&longitude=78.4867&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,precipitation"
+        req = urllib.request.urlopen(url, timeout=3)
+        res = json.loads(req.read().decode('utf-8'))
+        curr = res.get("current", {})
+        
+        w_code = curr.get("weather_code", 0)
+        temp = round(curr.get("temperature_2m", 28.5), 1)
+        humidity = round(curr.get("relative_humidity_2m", 65))
+        wind = round(curr.get("wind_speed_10m", 10.0), 1)
+        precip = round(curr.get("precipitation", 0.0), 1)
+        
+        if w_code == 0:
+            condition = "Clear"
+            icon = "☀️"
+            impact = "Low Impact"
+        elif w_code in [1, 2, 3]:
+            condition = "Cloudy"
+            icon = "☁️"
+            impact = "Normal Impact"
+        elif w_code in [45, 48]:
+            condition = "Foggy"
+            icon = "🌫️"
+            impact = "Reduced Visibility Risk"
+        elif w_code in [51, 53, 55, 61, 63, 65, 80, 81]:
+            condition = "Rain"
+            icon = "🌧️"
+            impact = "Increased Congestion Risk"
+        elif w_code in [95, 96, 99]:
+            condition = "Heavy Rain / Storm"
+            icon = "⛈️"
+            impact = "High Congestion Risk"
+        else:
+            condition = "Partly Cloudy"
+            icon = "🌤️"
+            impact = "Normal Impact"
+            
+        return {
+            "location": "Hyderabad, India",
+            "condition": condition,
+            "icon": icon,
+            "temperature_c": temp,
+            "humidity_percent": humidity,
+            "wind_speed_kmh": wind,
+            "precipitation_mm": precip,
+            "traffic_impact": impact,
+            "source": "Live Open-Meteo Weather API"
+        }
+    except Exception:
+        return {
+            "location": "Hyderabad, India",
+            "condition": "Cloudy",
+            "icon": "☁️",
+            "temperature_c": 28.0,
+            "humidity_percent": 68,
+            "wind_speed_kmh": 12.0,
+            "precipitation_mm": 0.0,
+            "traffic_impact": "Normal Impact",
+            "source": "Synthetic Demo Weather Dataset"
+        }
+
 def _build_map_response():
     """Generate structured road map data using precomputed high-precision OSRM road geometries"""
     road_network_file = DATA_DIR / "road_network.json"

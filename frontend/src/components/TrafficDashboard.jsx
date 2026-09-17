@@ -16,6 +16,9 @@ const TrafficDashboard = () => {
   const [peaks, setPeaks] = useState(null)
   const [overview, setOverview] = useState(null)
   const [mapData, setMapData] = useState([])
+  const [weather, setWeather] = useState(null)
+  const [weatherLoading, setWeatherLoading] = useState(true)
+  const [weatherError, setWeatherError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [segmentsLoading, setSegmentsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -29,6 +32,7 @@ const TrafficDashboard = () => {
     fetchSegments()
     fetchOverview()
     fetchMapData()
+    fetchWeather()
   }, [])
 
   useEffect(() => {
@@ -41,6 +45,24 @@ const TrafficDashboard = () => {
       fetchPeaks(selectedSegment)
     }
   }, [selectedSegment])
+
+  const fetchWeather = async () => {
+    setWeatherLoading(true)
+    setWeatherError(null)
+    try {
+      const response = await fetch(`${API_BASE}/api/weather`)
+      if (!response.ok) {
+        throw new Error('Weather endpoint returned error')
+      }
+      const data = await response.json()
+      setWeather(data)
+    } catch (err) {
+      console.error('Failed to load weather data:', err)
+      setWeatherError('Weather data temporarily unavailable')
+    } finally {
+      setWeatherLoading(false)
+    }
+  }
 
   const fetchSegments = async () => {
     setSegmentsLoading(true)
@@ -246,6 +268,92 @@ const TrafficDashboard = () => {
         <div className="mb-8">
           <h2 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Traffic Congestion Intelligence</h2>
           <p className={`mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Predict upcoming traffic conditions before you hit the road.</p>
+        </div>
+
+        {/* Weather Conditions Card */}
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg shadow border p-6 mb-8`}>
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <div>
+              <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} flex items-center gap-2`}>
+                <span>Weather Conditions</span>
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
+                  📍 Hyderabad, India
+                </span>
+              </h3>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                Live meteorological conditions factoring into ML traffic congestion predictions
+              </p>
+            </div>
+            {weather && weather.source && (
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${darkMode ? 'bg-gray-700 text-gray-300 border border-gray-600' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+                {weather.source}
+              </span>
+            )}
+          </div>
+
+          {weatherLoading ? (
+            <div className={`flex items-center justify-center py-6 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <span className="animate-pulse">Loading weather...</span>
+            </div>
+          ) : weatherError ? (
+            <div className={`p-4 rounded-md ${darkMode ? 'bg-gray-700/50 text-gray-300' : 'bg-gray-100 text-gray-600'} text-sm`}>
+              {weatherError}
+            </div>
+          ) : weather ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Temperature & Condition Hero */}
+              <div className={`p-4 ${darkMode ? 'bg-gray-700/60 border-gray-600' : 'bg-blue-50/70 border-blue-100'} rounded-xl border flex items-center gap-4`}>
+                <div className="text-4xl select-none">{weather.icon || '☁️'}</div>
+                <div>
+                  <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {weather.temperature_c}°C
+                  </div>
+                  <div className={`text-sm font-semibold ${darkMode ? 'text-blue-300' : 'text-blue-700'} mt-0.5`}>
+                    {weather.condition}
+                  </div>
+                </div>
+              </div>
+
+              {/* Metrics Grid */}
+              <div className={`p-4 ${darkMode ? 'bg-gray-700/60 border-gray-600' : 'bg-gray-50 border-gray-200'} rounded-xl border grid grid-cols-3 gap-2 text-center`}>
+                <div>
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Humidity</div>
+                  <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mt-1`}>
+                    💧 {weather.humidity_percent}%
+                  </div>
+                </div>
+                <div>
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Wind Speed</div>
+                  <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mt-1`}>
+                    💨 {weather.wind_speed_kmh} km/h
+                  </div>
+                </div>
+                <div>
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Rainfall</div>
+                  <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mt-1`}>
+                    🌧️ {weather.precipitation_mm} mm
+                  </div>
+                </div>
+              </div>
+
+              {/* Weather Impact Card */}
+              <div className={`p-4 ${darkMode ? 'bg-gray-700/60 border-gray-600' : 'bg-amber-50/70 border-amber-200'} rounded-xl border flex flex-col justify-between`}>
+                <div>
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} font-medium`}>Weather Impact on Traffic</div>
+                  <div className={`text-base font-bold mt-1 ${
+                    weather.traffic_impact.includes('High') ? 'text-red-500' :
+                    weather.traffic_impact.includes('Increased') ? 'text-orange-500' :
+                    weather.traffic_impact.includes('Reduced') ? 'text-yellow-500' : 'text-green-500'
+                  }`}>
+                    {weather.traffic_impact}
+                  </div>
+                </div>
+                <div className={`text-[11px] ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2 pt-2 border-t ${darkMode ? 'border-gray-600' : 'border-amber-200'}`}>
+                  ☀️ Clear: Low &bull; 🌧️ Rain: Increased Risk &bull; ⛈️ Storm: High Risk
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Prediction Form */}
